@@ -1,0 +1,53 @@
+@import "tailwindcss";
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+
+body {
+  margin: 0;
+}
+
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+}
+
+.perspective {
+  perspective: 500px;
+}
+.transform-style {
+  transform-style: preserve-3d;
+}
+
+
+/* 
+.game-card {
+  @apply bg-white text-blue-800 rounded-xl p-4 md:p-6 shadow-md hover:shadow-lg cursor-pointer text-center font-semibold text-sm md:text-lg transition hover:scale-105 flex flex-col items-center space-y-2;
+}
+
+.dialog-overlay {
+  @apply fixed inset-0 bg-black/40 z-40;
+}
+
+.dialog-content {
+  @apply fixed z-50 bg-white text-black p-6 rounded-xl top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-md shadow-lg;
+}
+
+.dialog-close {
+  @apply absolute top-3 right-4 text-xl font-bold text-gray-600 hover:text-black;
+} */
