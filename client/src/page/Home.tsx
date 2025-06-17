@@ -39,7 +39,7 @@ const Home: React.FC = () => {
         <h1 className="text-xl font-semibold text-white">Ludo Game</h1>
         <div className="flex items-center gap-6 space-x-6">
           <button>
-            {user && <IoLogOut size={28} className="cursor-pointer" onClick={handleLogout} />}
+            {user && <IoLogOut size={28} className="cursor-pointer text-white" onClick={handleLogout} />}
           </button>
           <SettingsDialog />
         </div>
