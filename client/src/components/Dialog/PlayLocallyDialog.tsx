@@ -37,7 +37,7 @@ const PlayLocallyDialog = () => {
   return (
     <Dialog.Root>
       <Dialog.Trigger asChild>
-        <div className="bg-white text-blue-800 rounded-xl p-4 md:p-6 shadow-md hover:shadow-lg cursor-pointer text-center font-semibold text-sm md:text-xl transition hover:scale-105 flex flex-row items-center justify-center space-x-6">
+        <div className=" bg-gradient-to-br from-gray-800 to-gray-900  text-blue-400 rounded-xl p-4 md:p-6 shadow-2xl border border-gray-700 hover:shadow-lg cursor-pointer text-center font-semibold text-sm md:text-xl transition hover:scale-105 flex flex-row items-center justify-center space-x-6">
           <FaUsers size={32} />
           <span>Play Locally</span>
         </div>

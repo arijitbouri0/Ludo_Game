@@ -2,7 +2,7 @@ import type React from "react";
 
 const StarIcon: React.FC = () => (
   <svg
-    className="w-6 h-6 text-gray-800 dark:text-white"
+    className="w-3 h-3 xs:w-4 xs:h-4 sm:w-5 sm:h-5 text-gray-800 dark:text-white"
     aria-hidden="true"
     xmlns="http://www.w3.org/2000/svg"
     width="24"

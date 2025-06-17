@@ -7,6 +7,7 @@ import { Toaster } from "react-hot-toast";
 import type { RootState } from "./redux/store";
 import LudoLoader from "./components/LudoLoader";
 import { SocketProvider } from "./context/SocketContext";
+import BackgroundMusic from "./components/BackGroundMusic";
 
 const Home = lazy(() => import('./page/Home'))
 const LudoBoard = lazy(() => import('./page/LudoBoard'))
@@ -32,6 +33,7 @@ const App: React.FC = () => {
 
   return (
     <BrowserRouter>
+    <BackgroundMusic/>
       <Routes>
         <Route
           path="/"

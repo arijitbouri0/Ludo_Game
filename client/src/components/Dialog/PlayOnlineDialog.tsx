@@ -1,10 +1,12 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import toast from "react-hot-toast";
 import { FaGlobe } from "react-icons/fa";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { CREATE_OR_FIND_ROOM, JOIN_ROOM, PLAYER_JOINED, ROOM_UPDATE, START_GAME } from "../../constants/events";
+import { CREATE_OR_FIND_ROOM, JOIN_ROOM, PLAYER_JOINED, START_GAME } from "../../constants/events";
 import { useSocket } from "../../context/SocketContext";
+import { useSocketEvents, type SocketHandlerMap } from "../../hooks/hook";
 import { initPlayers, setOnline } from "../../redux/reducers/localGameSlice"; // or a separate online reducer
 
 type CreateRoomResponse = {
@@ -17,10 +19,10 @@ type JoinRoomResponse = {
   message?: string;
 };
 
+
 const PlayOnlineDialog = () => {
   const [isMatching, setIsMatching] = useState(false);
   const [matched, setMatched] = useState(false);
-  const [roomPlayers, setRoomPlayers] = useState<string[]>([]);
   const [roomId, setRoomId] = useState<string | null>(null);
   const socket = useSocket();
   const dispatch = useDispatch();
@@ -28,39 +30,32 @@ const PlayOnlineDialog = () => {
   const [players, setPlayers] = useState<number | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
-  e.preventDefault();
-  if (!players) return;
+    e.preventDefault();
+    if (!players) return;
 
-  setIsMatching(true);
-  setMatched(false);
+    setIsMatching(true);
+    setMatched(false);
 
-  socket?.emit(CREATE_OR_FIND_ROOM, { playerCount: players }, (res: CreateRoomResponse) => {
-    setRoomId(res.roomId);
+    socket?.emit(CREATE_OR_FIND_ROOM, { playerCount: players }, (res: CreateRoomResponse) => {
+      setRoomId(res.roomId);
 
-    socket.emit(JOIN_ROOM, { roomId: res.roomId }, (joinRes: JoinRoomResponse) => {
-      if (joinRes.success) {
-        console.log("Joined room");
-      } else {
-        console.error(joinRes.message);
-      }
+      socket.emit(JOIN_ROOM, { roomId: res.roomId }, (joinRes: JoinRoomResponse) => {
+        if (joinRes.success) {
+          toast.success("joined Room")
+        } else {
+          toast.error(joinRes.message || "Failed to join room");
+        }
+      });
     });
-  });
-};
+  };
+
+  const playerJoinedListener = useCallback((name: string) => {
+    toast.success(`${name} joined`)
+  }, [])
 
 
-  useEffect(() => {
-    if (!socket) return;
-
-    socket.on(PLAYER_JOINED, (name: string) => {
-      console.log(`${name} joined`);
-    });
-
-    socket.on(ROOM_UPDATE, ({ players }: { players: { name: string }[] }) => {
-      const names = players.map((p) => p.name);
-      setRoomPlayers(names);
-    });
-
-    socket.on(START_GAME, ({ players }: { players: { name: string }[] }) => {
+  const startGameListener = useCallback(
+    ({ players }: { players: { name: string }[] }) => {
       const names = players.map((p) => p.name);
       dispatch(initPlayers({ count: names.length, names }));
       dispatch(setOnline(true));
@@ -68,19 +63,23 @@ const PlayOnlineDialog = () => {
       setTimeout(() => {
         navigate("/match");
       }, 1000);
-    });
+    },
+    [dispatch, navigate]
+  );
 
-    return () => {
-      socket.off(PLAYER_JOINED);
-      socket.off(ROOM_UPDATE);
-      socket.off(START_GAME);
-    };
-  }, [socket]);
+  const eventHandler: SocketHandlerMap<{
+    [START_GAME]: { players: { name: string }[] };
+    [PLAYER_JOINED]: string;
+  }> = {
+    [START_GAME]: startGameListener,
+    [PLAYER_JOINED]: playerJoinedListener,
+  };
+  useSocketEvents(socket, eventHandler)
 
   return (
     <Dialog.Root>
       <Dialog.Trigger asChild>
-        <div className="bg-white text-blue-800 rounded-xl p-4 shadow-md hover:shadow-lg cursor-pointer text-center font-semibold text-sm md:text-xl transition hover:scale-105 flex flex-row items-center justify-center space-x-6">
+        <div className="bg-gradient-to-br from-gray-800 to-gray-900  text-blue-400 border border-gray-700 rounded-xl p-4 shadow-2xl hover:shadow-lg cursor-pointer text-center font-semibold text-sm md:text-xl transition hover:scale-105 flex flex-row items-center justify-center space-x-6">
           <FaGlobe size={32} />
           <span>Play Online</span>
         </div>
@@ -124,19 +123,9 @@ const PlayOnlineDialog = () => {
             </form>
           )}
 
-          {isMatching && (
-            <div className="text-center text-blue-600 font-medium py-4 space-y-2">
-              <p>🔍 Waiting for other players...</p>
-              {roomPlayers.length > 0 && (
-                <div>
-                  <p className="font-semibold">Players Joined:</p>
-                  <ul className="text-sm text-gray-700">
-                    {roomPlayers.map((name, idx) => (
-                      <li key={idx}>🎮 {name}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+          {isMatching && !matched && (
+            <div className="text-center text-blue-600 font-medium py-4">
+              🔍 Waiting for other players...
             </div>
           )}
 
@@ -146,7 +135,15 @@ const PlayOnlineDialog = () => {
             </div>
           )}
 
-          <Dialog.Close className="absolute top-3 right-4 text-xl font-bold text-gray-600 hover:text-black">
+          <Dialog.Close
+            className="absolute top-3 right-4 text-xl font-bold text-gray-600 hover:text-black"
+            onClick={() => {
+              setPlayers(null);
+              setIsMatching(false);
+              setMatched(false);
+              setRoomId(null);
+            }}
+          >
             ×
           </Dialog.Close>
         </Dialog.Content>

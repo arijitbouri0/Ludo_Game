@@ -74,7 +74,7 @@ const LoginDialog: React.FC = () => {
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
             <Dialog.Trigger asChild>
-              <div className="bg-white text-blue-800 rounded-xl p-4 shadow-md hover:shadow-lg cursor-pointer text-center font-semibold text-sm md:text-xl transition hover:scale-105 flex flex-row items-center justify-center space-x-6">
+              <div className=" bg-gradient-to-br from-gray-800 to-gray-900  text-blue-400 border border-gray-700 rounded-xl p-4 shadow-2xl hover:shadow-lg cursor-pointer text-center font-semibold text-sm md:text-xl transition hover:scale-105 flex flex-row items-center justify-center space-x-6">
                 <span role="img" aria-label="online">
                   <FaGlobe size={32} />
                 </span>

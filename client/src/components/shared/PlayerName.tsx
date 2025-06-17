@@ -37,12 +37,12 @@ const PlayerName: React.FC<PlayerNameProps> = ({ name, color }) => {
   return (
     <div className={`absolute ${positionStyles[color]} flex flex-col items-center`}>
       <div
-        className={`w-10 h-10 rounded-full ${bgColors[color]} text-white flex items-center justify-center font-bold`}
+        className={`w-9 h-9 md:w-12 md:h-12 border-2 border-black rounded-full ${bgColors[color]} text-white flex items-center justify-center font-bold text-[14px] md:text-xl`}
       >
         {getInitials(name)}
       </div>
       <span
-        className={`text-sm font-medium ${textColors[color]} text-center whitespace-nowrap`}
+        className={` text-[12px] md:text-sm font-medium ${textColors[color]} text-center whitespace-nowrap`}
       >
         {name}
       </span>

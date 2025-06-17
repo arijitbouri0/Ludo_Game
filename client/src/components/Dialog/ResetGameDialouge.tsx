@@ -9,21 +9,22 @@ const ResetGameDialog = () => {
   const navigate = useNavigate();
 
   const handleEndGame = () => {
-    dispatch(resetGame());     
+    dispatch(resetGame());
     setTimeout(() => {
-    navigate('/');
-  }, 100);              
+      navigate('/');
+    }, 100);
   };
 
   return (
     <AlertDialog.Root>
       <AlertDialog.Trigger asChild>
         <button
-          className="absolute top-4 left-4 inline-flex h-[35px] items-center justify-center bg-white px-[15px] text-gray-800 font-medium hover:bg-gray-100 focus-visible:outline focus-visible:outline-violet-600"
+          className="absolute top-2 sm:top-4 left-2 sm:left-4 inline-flex h-9 sm:h-[35px] items-center justify-center px-3 sm:px-[15px] text-sm sm:text-base text-gray-100 font-medium hover:bg-gray-100 hover:text-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-violet-600 rounded-md"
           title="Back to Home"
         >
-          <IoExitOutline size={24}/>
+          <IoExitOutline size={20} className="sm:size-6" />
         </button>
+
       </AlertDialog.Trigger>
       <AlertDialog.Portal>
         <AlertDialog.Overlay className="fixed inset-0 z-50 bg-black/50 data-[state=open]:animate-overlayShow" />

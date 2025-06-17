@@ -24,7 +24,7 @@ const ArrowIcon: React.FC<ArrowProps> = ({ direction = "up" }) => {
 
   return (
     <svg
-      className={`w-6 h-6 text-black ${rotation}`}
+      className={`w-3 h-3 xs:w-4 xs:h-4 sm:w-5 sm:h-5 text-black ${rotation}`}
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"

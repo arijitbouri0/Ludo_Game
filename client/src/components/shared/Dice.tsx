@@ -1,11 +1,15 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import diceSound from '../../assets/dice-sound.mp3';
+import { DICE_ROLLED, ROLL_DICE } from "../../constants/events";
 import { useSocket } from "../../context/SocketContext";
 import { delay } from "../../features/Helper";
 import type { PlayerPiece } from "../../features/types";
-import { rollDice, setTurnIndex, setTurnStatus, skipTurn } from "../../redux/reducers/localGameSlice";
+import { useSocketEvents, type SocketHandlerMap } from "../../hooks/hook";
+import { rollDice, setTeamHasBonus, skipTurn } from "../../redux/reducers/localGameSlice";
 import type { RootState } from "../../redux/store";
+import store from "../../redux/store";
+import { playSound } from "../../utils/playSound";
 
 const faceRotations: Record<number, { x: number; y: number }> = {
   1: { x: 0, y: 0 },
@@ -16,11 +20,7 @@ const faceRotations: Record<number, { x: number; y: number }> = {
   6: { x: 90, y: 0 },
 };
 
-interface DiceProps {
-  color: "red" | "green" | "blue" | "yellow";
-}
-
-const Dice: React.FC<DiceProps> = () => {
+const Dice = () => {
   const dispatch = useDispatch();
   const {
     playerPieces,
@@ -31,6 +31,7 @@ const Dice: React.FC<DiceProps> = () => {
     playerNames
   } = useSelector((state: RootState) => state.localGame);
   const currentPlayerName = playerNames[currentPlayerTurnIndex];
+  const { user } = useSelector((state: RootState) => state.auth);
   const socket = useSocket();
   const [rotation, setRotation] = useState({ x: 0, y: 0 });
   const [isDice, setIsDice] = useState(false);
@@ -43,6 +44,7 @@ const Dice: React.FC<DiceProps> = () => {
     setRotation({ x: spinX, y: spinY });
 
     dispatch(rollDice(newResult));
+    dispatch(setTeamHasBonus(newResult === 6));
     await delay(1000);
 
     const currentTeamTurn = playerTurns[currentPlayerTurnIndex];
@@ -63,26 +65,36 @@ const Dice: React.FC<DiceProps> = () => {
   };
   const turnDice = async () => {
     if (isDice || !currentPlayerTurnStatus) return;
+    if (isOnline && user?.username !== currentPlayerName) return;
     setIsDice(true);
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     const diceAudio = new Audio(diceSound);
-    diceAudio.currentTime = 0;
-    diceAudio.play();
+    playSound(diceAudio, store.getState);
     if (isOnline && socket) {
       const currentTeamTurn = playerTurns[currentPlayerTurnIndex];
       const totalUnlockedPieces = playerPieces.filter(
         (p) => p.team === currentTeamTurn && p.status === 1
       ).length;
 
-      socket.emit("ROLL_DICE", {
+      socket.emit(ROLL_DICE, {
         noUnlockedPieces: totalUnlockedPieces === 0,
       });
-      return; //
+      return;
     }
     const random = Math.random();
     const newResult = Math.floor(random * 6) + 1;
     animateDiceAndDispatch(newResult); // local mode
   };
+
+  useEffect(() => {
+    if (isOnline) {
+      const shouldEnable = user?.username === currentPlayerName && currentPlayerTurnStatus;
+      if (shouldEnable) {
+        setIsDice(false); // Reset dice state
+      }
+    }
+  }, [currentPlayerTurnIndex, currentPlayerTurnStatus, isOnline, user?.username, currentPlayerName]);
+
 
   useEffect(() => {
     if (!isOnline && currentPlayerTurnStatus) {
@@ -107,55 +119,26 @@ const Dice: React.FC<DiceProps> = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isDice]);
 
- useEffect(() => {
-  if (!socket || !isOnline) return;
-
-  const handleDiceRolled = ({ value, by }: { value: number, by: string }) => {
+  const handleDiceRolledListener = useCallback(({ value, by }: { value: number, by: string }) => {
     if (by === currentPlayerName) {
       animateDiceAndDispatch(value);
     }
-  };
-  const handleTurnSkipped = ({ by }: { by: string }) => {
-    console.log(`Turn skipped by: ${by}`);
-    // Optional: show a toast or UI message
-  };
+  }, [user?.username,currentPlayerName]);
 
-  const handleTurnChanged = ({ to }: { to: string }) => {
-    console.log(`Turn changed to: ${to}`);
-    const newIndex = playerNames.findIndex((name) => name === to);
-    if (newIndex !== -1) {
-      dispatch(setTurnIndex(newIndex));
-    }
-    dispatch(setTurnStatus(true)); // Assuming it's that player's turn
+
+  const eventHandler: SocketHandlerMap<{
+    [DICE_ROLLED]: { value: number; by: string };
+  }> = {
+    [DICE_ROLLED]: handleDiceRolledListener,
   };
 
-  socket.on("DICE_ROLLED", handleDiceRolled);
-  socket.on("TURN_SKIPPED", handleTurnSkipped);
-  socket.on("TURN_CHANGED", handleTurnChanged);
-
-  return () => {
-    socket.off("DICE_ROLLED", handleDiceRolled);
-    socket.off("TURN_SKIPPED", handleTurnSkipped);
-    socket.off("TURN_CHANGED", handleTurnChanged);
-  };
-}, [socket, isOnline, currentPlayerName, playerNames, dispatch]);
-
-
-  // In unlockPiece dispatch logic
-  if (isOnline && socket) {
-    socket.emit("PLAYER_ACTION", { by: currentPlayerName });
-  }
-
-  // Same inside movePiece logic after dispatch
-  if (isOnline && socket) {
-    socket.emit("PLAYER_ACTION", { by: currentPlayerName });
-  }
+  useSocketEvents(socket, eventHandler)
 
 
 
   return (
     <div
-      className={`w-14 h-14 rounded-md perspective ${isDice ? 'pointer-events-none opacity-50' : 'cursor-pointer'
+      className={`w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-md perspective ${isDice ? 'pointer-events-none opacity-50' : 'cursor-pointer'
         }`}
       onClick={turnDice}
     >
@@ -180,7 +163,7 @@ const Dice: React.FC<DiceProps> = () => {
 };
 
 const faceTransform = (face: number): React.CSSProperties => {
-  const depth = 28;
+  const depth = 20;
   switch (face) {
     case 1: return { transform: `rotateY(0deg) translateZ(${depth}px)` };
     case 2: return { transform: `rotateY(180deg) translateZ(${depth}px)` };
@@ -210,4 +193,3 @@ const renderDots = (face: number): React.ReactElement[] => {
 };
 
 export default Dice;
-

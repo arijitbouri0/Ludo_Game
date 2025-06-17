@@ -1,16 +1,15 @@
 export class GameRoom {
-  players = [];
-  maxPlayers;
-  currentTurnIndex = 0;
-  isGameStarted = false;
-  lastDice = null;
-
   constructor(maxPlayers) {
+    this.players = [];
     this.maxPlayers = maxPlayers;
+    this.currentTurnIndex = 0;
+    this.isGameStarted = false;
+    this.lastDice = null;
+    this.skipTurnTimeout = null;
   }
 
   addPlayer(player) {
-    this.players.push(player); 
+    this.players.push(player);
   }
 
   isFull() {
@@ -29,6 +28,7 @@ export class GameRoom {
 
   nextTurn() {
     this.currentTurnIndex = (this.currentTurnIndex + 1) % this.players.length;
+    return this.getCurrentPlayer();
   }
 
   setLastDice(value) {
@@ -49,5 +49,12 @@ export class GameRoom {
       return true;
     }
     return false;
+  }
+
+  cleanup() {
+    if (this.skipTurnTimeout) {
+      clearTimeout(this.skipTurnTimeout);
+      this.skipTurnTimeout = null;
+    }
   }
 }

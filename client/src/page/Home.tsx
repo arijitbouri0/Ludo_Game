@@ -34,9 +34,9 @@ const Home: React.FC = () => {
     }
   }
   return (
-    <div className="bg-blue-800 min-h-dvh text-white">
-      <nav className="flex justify-between items-center px-12 py-4 bg-blue-800 h-16">
-        <h1 className="text-xl font-semibold">Ludo Game</h1>
+    <div className="min-h-dvh">
+      <nav className="flex justify-between items-center px-12 py-4 h-16">
+        <h1 className="text-xl font-semibold text-white">Ludo Game</h1>
         <div className="flex items-center gap-6 space-x-6">
           <button>
             {user && <IoLogOut size={28} className="cursor-pointer" onClick={handleLogout} />}

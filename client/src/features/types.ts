@@ -21,4 +21,5 @@ export interface LudoState {
   playerPieces: PlayerPiece[];
   winners: TeamColor [];
   isOnline:boolean;
+  cutPiece:{ by: string; pieceId: string } | null,
 }

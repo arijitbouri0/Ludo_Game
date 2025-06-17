@@ -32,11 +32,11 @@ const PlayerHomeZone: React.FC<PlayerHomeZoneProps> = ({
 }) => {
   return (
     <div
-      className={`${bgColorMap[team]} justify-center items-center flex ${
+      className={`${bgColorMap[team]} p-1 sm:p-2 justify-center items-center flex ${
         currentTeamTurn === team ? `${glowClasses[team]} animate-pulse` : ""
       }`}
     >
-      <div className={`w-[70%] h-[70%] bg-white justify-items-center items-center grid grid-cols-2 grid-rows-2`}>
+      <div className={`w-full h-full max-w-[80%] max-h-[80%] bg-white justify-items-center items-center grid grid-cols-2 grid-rows-2`}>
         {playerPieces
           .filter((piece) => piece.team === team)
           .map((piece, idx) => (

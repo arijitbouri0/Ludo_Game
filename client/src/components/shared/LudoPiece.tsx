@@ -50,7 +50,7 @@ const LudoPiece: React.FC<LudoPieceProps> = ({ color, id, pieceMove }) => {
         fill={`${colorMap[color]}`}
         strokeWidth="1.2"
         stroke="#000000"
-        className="size-6"
+        className="w-4 h-4 md:h-6 md:w-6"
       >
         <path
           fillRule="evenodd"

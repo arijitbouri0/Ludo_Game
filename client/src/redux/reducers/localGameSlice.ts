@@ -14,6 +14,7 @@ const initialState: LudoState = {
   playerPieces: [],
   winners: [],
   isOnline: false,
+  cutPiece: null
 };
 
 const homeAndGamePaths: Record<TeamColor, { homeEntry: string; gameEntry: string }> = {
@@ -84,7 +85,6 @@ const localGameSlice = createSlice({
       const piece = state.playerPieces.find(p => p.pieceId === action.payload.id);
       if (!piece || piece.team !== state.playerTurns[state.currentPlayerTurnIndex]) return;
       if (piece.status !== 1 || state.diceResult === null) return;
-
       const pathArray = giveArrayForMovingPath(piece, state.diceResult);
       const lastPos = pathArray[pathArray.length - 1];
 
@@ -102,41 +102,33 @@ const localGameSlice = createSlice({
         opponent.status = 0;
         state.teamHasBonus = true;
         state.currentPlayerTurnStatus = true;
+        if (state.isOnline) {
+          state.cutPiece = {
+            by: state.playerNames[state.currentPlayerTurnIndex],
+            pieceId: opponent.pieceId,
+          };
+        }
       }
 
       piece.position = action.payload.newPosition;
       piece.score += pathArray.length;
-
       if (piece.position === "home") {
         piece.status = 2;
       }
       const team = piece.team;
       const allHome = state.playerPieces.filter(p => p.team === team).every(p => p.status === 2);
-
       if (allHome && !state.winners.includes(team)) {
         state.winners.push(team);
       }
-
-
       if (!state.teamHasBonus && state.diceResult === 6) {
         state.teamHasBonus = true;
         state.currentPlayerTurnStatus = true;
       } else {
         state.currentPlayerTurnStatus = false;
       }
-
       state.diceResult = 0;
     },
 
-
-    sendPieceToBase: (state, action: PayloadAction<string>) => {
-      const piece = state.playerPieces.find(p => p.pieceId === action.payload);
-      if (piece) {
-        piece.position = `home_${piece.team}`;
-        piece.status = 0;
-        piece.score = 0;
-      }
-    },
     setOnline: (state, action: PayloadAction<boolean>) => {
       state.isOnline = action.payload;
     },
@@ -147,7 +139,25 @@ const localGameSlice = createSlice({
     setTurnStatus: (state, action: PayloadAction<boolean>) => {
       state.currentPlayerTurnStatus = action.payload;
     },
-
+    setTeamHasBonus: (state, action: PayloadAction<boolean>) => {
+      state.teamHasBonus = action.payload;
+    },
+    clearCutPiece: (state) => {
+      state.cutPiece = null;
+    },
+    cutPieceFromSocket: (
+      state,
+      action: PayloadAction<{ pieceId: string }>
+    ) => {
+      const { pieceId } = action.payload;
+      const piece = state.playerPieces.find((p) => p.pieceId === pieceId);
+      if (!piece) return;
+      piece.score = 0;
+      piece.position = `home_${piece.team}`;
+      piece.status = 0;
+      state.teamHasBonus = true;
+      state.currentPlayerTurnStatus = true;
+    },
     resetGame: () => initialState,
   },
 });
@@ -158,11 +168,13 @@ export const {
   skipTurn,
   unlockPiece,
   movePiece,
-  sendPieceToBase,
   resetGame,
   setOnline,
   setTurnIndex,
-  setTurnStatus
+  setTurnStatus,
+  setTeamHasBonus,
+  clearCutPiece,
+  cutPieceFromSocket
 } = localGameSlice.actions;
 
 export default localGameSlice;

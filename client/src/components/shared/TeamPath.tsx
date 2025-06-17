@@ -137,7 +137,7 @@ const TeamPath: React.FC<TeamPathProps> = ({ teamColor, handleMove }) => {
   const { layout, pathTileIds, homeTileIds, starTileIds, arrowTilePositions } =
     pathConfig[teamColor];
   const tileClass =
-    "flex justify-center items-center sm:min-w-[30px] sm:min-h-[30px] border border-black";
+    "flex justify-center items-center min-w-[20px] min-h-[20px] xs:min-w-[24px] xs:min-h-[24px] sm:min-w-[30px] sm:min-h-[30px] border border-black";
 
   const playerPieces = useSelector((state: RootState) => state.localGame.playerPieces);
   const allTileIds = [...pathTileIds];
@@ -176,7 +176,7 @@ const TeamPath: React.FC<TeamPathProps> = ({ teamColor, handleMove }) => {
               key={tileId}
               id={tileId}
               className={`relative ${tileClass} flex flex-wrap justify-center items-center gap-1 cursor-pointer ${
-                isHome ? `bg-${teamColor}-500` : ""
+                isHome ? `bg-${teamColor}-500` : "bg-white"
               }`}
               onClick={() => {
                 if (piecesHere.length > maxPiecesToShow) {
