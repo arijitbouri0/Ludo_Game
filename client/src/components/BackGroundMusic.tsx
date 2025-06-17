@@ -11,9 +11,16 @@ const BackgroundMusic = () => {
   useEffect(() => {
     const audio = audioRef.current;
     audio.loop = true;
-    if (!isMuted && isMusicPlaying) {
-      audio.play().catch(err => console.log("Autoplay blocked or error:", err));
-    } else {
+    const handleInteraction = () => {
+      if (!isMuted && isMusicPlaying) {
+        audio.play().catch(err => console.log("Autoplay error:", err));
+      }
+      document.removeEventListener("click", handleInteraction);
+    };
+
+    document.addEventListener("click", handleInteraction);
+
+    if (!isMusicPlaying || isMuted) {
       audio.pause();
     }
 
